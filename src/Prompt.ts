@@ -41,10 +41,14 @@ export class Prompt<T extends object> {
       fetchReply: true,
     });
 
-    msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
+    const response = await msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
       time: (state.timeout && state.timeout * 1000) || 120_000,
       filter: (i) => i.user.id === interaction.user.id,
-    }).then(this.handleCollect).catch(() => null);
+    }).catch(() => null);
+
+    if (!response) return;
+
+    await this.handleCollect(response);
   }
 
   private async changeState(newState: string, interaction: RepliableInteraction) {
@@ -65,10 +69,14 @@ export class Prompt<T extends object> {
         embeds: Array.isArray(messageData.embeds) ? messageData.embeds : await messageData.embeds(this.context),
       });
 
-      msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
+      const response = await msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
         time: (state.timeout && state.timeout * 1000) || 120_000,
         filter: (i) => i.user.id === interaction.user.id,
-      }).then(this.handleCollect).catch(() => null);
+      }).catch(() => null);
+
+      if (!response) return;
+
+      await this.handleCollect(response);
     } else {
       const msg = await interaction.reply({
         components,
@@ -78,10 +86,14 @@ export class Prompt<T extends object> {
         embeds: Array.isArray(messageData.embeds) ? messageData.embeds : await messageData.embeds(this.context),
       });
 
-      msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
+      const response = await msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
         time: (state.timeout && state.timeout * 1000) || 120_000,
         filter: (i) => i.user.id === interaction.user.id,
-      }).then(this.handleCollect).catch(() => null);
+      }).catch(() => null);
+
+      if (!response) return;
+
+      await this.handleCollect(response);
     }
   }
 
@@ -98,6 +110,8 @@ export class Prompt<T extends object> {
         const shouldShowModal = typeof component.showModal === 'boolean' ? component.showModal ?? true : await component.showModal?.(this.context as any);
 
         if (!shouldShowModal) {
+          await interaction.deferUpdate();
+
           const newState = typeof component?.callback === 'string' ? component.callback : await component?.callback(this.context as any, null);
 
           return this.changeState(newState, interaction);
