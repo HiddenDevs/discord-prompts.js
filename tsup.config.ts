@@ -7,7 +7,7 @@ export default defineConfig({
   minify: true,
   keepNames: true,
   dts: true,
-  target: 'es2021',
+  target: 'es2022',
   skipNodeModulesBundle: true,
   outDir: 'dist',
 });
