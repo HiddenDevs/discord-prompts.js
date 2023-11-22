@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 import {
-  ActionRowBuilder, ButtonBuilder, ButtonInteraction, ComponentType, InteractionCollector, ModalBuilder, RepliableInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction,
+  ActionRowBuilder, ButtonBuilder, ButtonInteraction, ComponentType, ModalBuilder, RepliableInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction,
 } from 'discord.js';
 import {
   PromptComponentType,
@@ -15,8 +15,6 @@ export class Prompt<T extends object> {
 
   public currentState?: PromptState<T> & { components: (PromptStateComponent<T> & { customId: string; modal?: ModalBuilder; })[] };
 
-  private collector?: InteractionCollector<ButtonInteraction | StringSelectMenuInteraction>;
-
   constructor(public defaults: T, public initialState: string, public states: PromptState<T>[]) {
     this.context = { ...defaults };
   }
@@ -29,11 +27,11 @@ export class Prompt<T extends object> {
 
     this.currentState = { ...state, components: [] };
 
-    const messageData = await state.message(this.context);
-    const components = await this.formatComponents(messageData);
-
     const shouldChangeState = await state.onEntered?.(this.context);
     if (shouldChangeState) this.changeState(shouldChangeState, interaction);
+
+    const messageData = await state.message(this.context);
+    const components = await this.formatComponents(messageData);
 
     const msg = await interaction.reply({
       components,
@@ -43,18 +41,19 @@ export class Prompt<T extends object> {
       fetchReply: true,
     });
 
-    this.collector = msg.createMessageComponentCollector<ComponentType.Button | ComponentType.StringSelect>({
+    msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
       time: (state.timeout && state.timeout * 1000) || 120_000,
       filter: (i) => i.user.id === interaction.user.id,
-    });
-
-    this.collector.on('collect', this.handleCollect);
+    }).then(this.handleCollect).catch(() => null);
   }
 
   private async changeState(newState: string, interaction: RepliableInteraction) {
     const state = this.states.find((c) => c.name === newState)!;
 
     this.currentState = { ...state, components: [] };
+
+    const shouldChangeState = await state.onEntered?.(this.context);
+    if (shouldChangeState) this.changeState(shouldChangeState, interaction);
 
     const messageData = await state.message(this.context);
     const components = await this.formatComponents(messageData);
@@ -66,12 +65,10 @@ export class Prompt<T extends object> {
         embeds: Array.isArray(messageData.embeds) ? messageData.embeds : await messageData.embeds(this.context),
       });
 
-      this.collector = msg.createMessageComponentCollector<ComponentType.Button | ComponentType.StringSelect>({
+      msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
         time: (state.timeout && state.timeout * 1000) || 120_000,
         filter: (i) => i.user.id === interaction.user.id,
-      });
-
-      this.collector.on('collect', this.handleCollect);
+      }).then(this.handleCollect).catch(() => null);
     } else {
       const msg = await interaction.reply({
         components,
@@ -81,17 +78,14 @@ export class Prompt<T extends object> {
         embeds: Array.isArray(messageData.embeds) ? messageData.embeds : await messageData.embeds(this.context),
       });
 
-      this.collector = msg.createMessageComponentCollector<ComponentType.Button | ComponentType.StringSelect>({
+      msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
         time: (state.timeout && state.timeout * 1000) || 120_000,
         filter: (i) => i.user.id === interaction.user.id,
-      });
-
-      this.collector.on('collect', this.handleCollect);
+      }).then(this.handleCollect).catch(() => null);
     }
   }
 
   private async handleCollect(interaction: ButtonInteraction | StringSelectMenuInteraction) {
-    this.collector?.stop();
     this.context.interaction = interaction;
 
     const component = this.currentState?.components.find((c) => c.customId === interaction.customId);
