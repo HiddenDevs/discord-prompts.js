@@ -34,7 +34,7 @@ export interface PromptStateModalButtonComponent<T> {
 export interface PromptStateModalSelectMenuComponent<T, K extends boolean = boolean> {
     type: PromptComponentType.ModalSelectMenu;
     showModal?: K | ((ctx: PromptContext<T, StringSelectMenuInteraction>) => MaybePromise<K>)
-    component: ((ctx: PromptContext<T>) => MaybePromise<{ button: StringSelectMenuBuilder; modal: ModalBuilder; }>);
+    component: ((ctx: PromptContext<T>) => MaybePromise<{ selectMenu: StringSelectMenuBuilder; modal: ModalBuilder; }>);
     callback: string | ((ctx: PromptContext<T, StringSelectMenuInteraction>, interaction: K extends true ? ModalSubmitInteraction : null) => MaybePromise<string>);
 }
 
