@@ -20,7 +20,7 @@ import { customId } from './util/customId';
 /**
  * A prompt that allows you to create a sequence of states that a user can go through
  * with discord js buttons and select menus.
- * 
+ *
  * @example
  * ```ts
  * const prompt = new Prompt<ContextType>(defaults, initialState.name, [...]);
@@ -43,13 +43,12 @@ export class Prompt<T extends object> {
 		public states: PromptState<T>[],
 	) {
 		const previousStates: string[] = [];
-		this.context = { ...defaults, previousStates, goBack: this.goBack.bind(this) } as PromptContext<T>;
-	}
 
-	/** Goes back to the previous state, if no state is found it goes to the initial state */
-	private goBack(): string {
-		const state = this.context.previousStates.pop();
-		return state ?? this.initialState;
+		const goBack = () => {
+			return this.context.previousStates.pop() ?? this.initialState;
+		};
+
+		this.context = { ...defaults, previousStates, goBack };
 	}
 
 	/**

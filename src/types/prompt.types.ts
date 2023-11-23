@@ -23,23 +23,11 @@ export const enum PromptComponentType {
 
 // * Prompt Context Types * //
 
-interface PromptContextBase<T> {
+export type PromptContext<Context extends object, T = RepliableInteraction> = Context & {
 	interaction?: T;
-
-	/** The previous states of the prompt */
 	previousStates: string[];
-
-	/**
-	 * Gets the previous state and pops it out of the stack
-	 * @returns The previous state, if no state is found it returns the initial state
-	 */
 	goBack: () => string;
-}
-
-/** The type representative of the context */
-export type PromptContext<T extends object, I = RepliableInteraction> = T extends PromptContextBase<I>
-	? T
-	: PromptContextBase<I> & T;
+};
 
 // * Prompt Component Types * //
 
