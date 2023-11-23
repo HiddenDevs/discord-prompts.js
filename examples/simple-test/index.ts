@@ -15,9 +15,9 @@ client.on('ready', () => console.log('I\'m ready'));
 
 client.on('interactionCreate', async (interaction) => {
     if (interaction.isChatInputCommand()) {
-        commands.forEach((command) => {
+        commands.forEach(async (command) => {
             if (command.name === interaction.commandName) {
-                command.callback(interaction);
+                await command.callback(interaction);
             }
         })
     }
