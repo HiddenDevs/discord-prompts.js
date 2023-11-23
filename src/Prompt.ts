@@ -18,7 +18,7 @@ export class Prompt<T extends object> {
   /** Creates the prompt with a given set of states */
   constructor(defaults: T, public initialState: string, public states: PromptState<T>[]) {
     const previousStates: string[] = [];
-    this.context = { ...defaults, previousStates: previousStates, goBack: this.goBack.bind(this) } as PromptContext<T>;
+    this.context = { ...defaults, previousStates, goBack: this.goBack.bind(this) } as PromptContext<T>;
   }
 
   /** Goes back to the previous state, if no state is found it goes to the initial state */

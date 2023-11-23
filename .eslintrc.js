@@ -31,5 +31,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': 'error',
     'no-unused-vars': 'off',
     'import/prefer-default-export': 'off',
+    'no-restricted-syntax': ['off'],
+    'no-await-in-loop': 'off',
   },
 };

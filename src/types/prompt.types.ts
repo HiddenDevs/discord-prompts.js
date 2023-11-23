@@ -61,9 +61,9 @@ export interface PromptStateModalButtonComponent<T extends object> extends Promp
 }
 
 /** A prompt state that is a modal opened by a select menu component */
-export interface PromptStateModalSelectMenuComponent<T extends object, K extends boolean = boolean> extends PromptStateComponentBaseWithInteraction<T, StringSelectMenuInteraction, K extends true ? ModalSubmitInteraction : null> {
+export interface PromptStateModalSelectMenuComponent<T extends object> extends PromptStateComponentBaseWithInteraction<T, StringSelectMenuInteraction, ModalSubmitInteraction | null> {
     type: PromptComponentType.ModalSelectMenu;
-    showModal?: K | ((ctx: PromptContext<T, StringSelectMenuInteraction>) => MaybePromise<K>)
+    showModal?: boolean | ((ctx: PromptContext<T, StringSelectMenuInteraction>) => MaybePromise<boolean>)
     component: ((ctx: PromptContext<T>) => MaybePromise<{ button: StringSelectMenuBuilder; modal: ModalBuilder; }>);
 }
 
@@ -71,8 +71,6 @@ export interface PromptStateModalSelectMenuComponent<T extends object, K extends
 export type PromptStateComponent<T extends object> = PromptStateButtonComponent<T> | PromptStateSelectMenuComponent<T> | PromptStateModalSelectMenuComponent<T> | PromptStateModalButtonComponent<T>;
 
 // * Prompt State Types * //
-
-
 
 /** A prompt state message callback */
 export interface PromptStateMessageCallback<T extends object> {
