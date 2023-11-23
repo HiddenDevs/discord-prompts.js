@@ -24,7 +24,7 @@ export class Prompt<T extends object> {
   /** Goes back to the previous state, if no state is found it goes to the initial state */
   private goBack() {
     const state = this.context.previousStates.pop();
-    this.changeState(state ?? this.initialState, this.context.interaction!);
+    return state ?? this.initialState;
   }
 
   /**

@@ -22,8 +22,11 @@ interface PromptContextBase<T> {
     /** The previous states of the prompt */
     previousStates: string[];
 
-    /** Goes back to the previous state, if no state is found it goes to initial state */
-    goBack: () => void;
+    /**
+     * Gets the previous state and pops it out of the stack
+     * @returns The previous state, if no state is found it returns the initial state
+     */
+    goBack: () => string;
 }
 
 /** The type representative of the context */
