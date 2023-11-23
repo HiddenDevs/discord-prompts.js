@@ -15,6 +15,7 @@
   },
   "files": [
     "lib/**/*",
+    "package.json",
     "README.md"
   ],
   "devDependencies": {
