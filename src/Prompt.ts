@@ -4,19 +4,26 @@ import {
 import {
   PromptComponentType,
   PromptContext, PromptState, PromptStateComponent, PromptStateMessageCallback,
-} from './types';
-import { customId } from './customId';
+} from './types/prompt.types';
+import { customId } from './util/customId';
 
 // eslint-disable-next-line import/prefer-default-export
 export class Prompt<T extends object> {
-  public context: PromptContext<T>;
+  /** The current context of this prompt */
+  private context: PromptContext<T>;
 
-  public currentState?: PromptState<T> & { components: (PromptStateComponent<T> & { customId: string; modal?: ModalBuilder; })[] };
+  /** The current state */
+  private currentState?: PromptState<T> & { components: (PromptStateComponent<T> & { customId: string; modal?: ModalBuilder; })[] };
 
+  /** Creates the prompt with a given set of states */
   constructor(public defaults: T, public initialState: string, public states: PromptState<T>[]) {
     this.context = { ...defaults };
   }
 
+  /**
+   * Starts the prompt with a given interaction
+   * @param interaction The interaction starting off the sequence
+   */
   public async start(interaction: RepliableInteraction) {
     this.context.interaction = interaction;
 
@@ -111,6 +118,7 @@ export class Prompt<T extends object> {
           await interaction.deferUpdate();
 
           const newState = typeof component?.callback === 'string' ? component.callback : await component?.callback(this.context as any, null);
+          if (!newState) return interaction.deleteReply();
 
           return this.changeState(newState, interaction);
         }
@@ -128,12 +136,14 @@ export class Prompt<T extends object> {
       await response.deferUpdate();
 
       const newState = typeof component?.callback === 'string' ? component.callback : await component?.callback(this.context as any, response);
+      if (!newState) return interaction.deleteReply();
 
       await this.changeState(newState, interaction);
     } else {
       await interaction.deferUpdate();
 
       const newState = typeof component?.callback === 'string' ? component.callback : await component?.callback(this.context as any);
+      if (!newState) return interaction.deleteReply();
 
       await this.changeState(newState, interaction);
     }
