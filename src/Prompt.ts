@@ -16,8 +16,15 @@ export class Prompt<T extends object> {
   private currentState?: PromptState<T> & { components: (PromptStateComponent<T> & { customId: string; modal?: ModalBuilder; })[] };
 
   /** Creates the prompt with a given set of states */
-  constructor(public defaults: T, public initialState: string, public states: PromptState<T>[]) {
-    this.context = { ...defaults };
+  constructor(defaults: T, public initialState: string, public states: PromptState<T>[]) {
+    const previousStates: string[] = [];
+    this.context = { ...defaults, previousStates: previousStates, goBack: this.goBack.bind(this) } as PromptContext<T>;
+  }
+
+  /** Goes back to the previous state, if no state is found it goes to the initial state */
+  private goBack() {
+    const state = this.context.previousStates.pop();
+    this.changeState(state ?? this.initialState, this.context.interaction!);
   }
 
   /**
@@ -57,8 +64,10 @@ export class Prompt<T extends object> {
   }
 
   private async changeState(newState: string, interaction: RepliableInteraction) {
-    const state = this.states.find((c) => c.name === newState)!;
+    const state = this.states.find((c) => c.name === newState);
+    if (!state) return Promise.reject(new Error(`State ${newState} not found.`));
 
+    this.context.previousStates.push(this.currentState?.name!);
     this.currentState = { ...state, components: [] };
 
     const shouldChangeState = await state.onEntered?.(this.context);
