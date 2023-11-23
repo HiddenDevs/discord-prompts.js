@@ -37,7 +37,7 @@ export class Prompt<T extends object> {
 	}
 
 	/** Goes back to the previous state, if no state is found it goes to the initial state */
-	private goBack() {
+	private goBack(): string {
 		const state = this.context.previousStates.pop();
 		return state ?? this.initialState;
 	}
@@ -46,7 +46,7 @@ export class Prompt<T extends object> {
 	 * Starts the prompt with a given interaction
 	 * @param interaction The interaction starting off the sequence
 	 */
-	public async start(interaction: RepliableInteraction) {
+	public async start(interaction: RepliableInteraction): Promise<void> {
 		this.context.interaction = interaction;
 
 		const state = this.states.find((c) => c.name === this.initialState);
@@ -238,7 +238,7 @@ export class Prompt<T extends object> {
 				} else {
 					const id = customId(this.currentState?.name ?? 'default');
 					builder.setCustomId(id);
-					
+
 					this.currentState?.components.push({ ...component, customId: id });
 					actionRow.addComponents(builder);
 				}
