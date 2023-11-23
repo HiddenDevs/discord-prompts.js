@@ -1,5 +1,5 @@
-import { simpleCommand } from "./simple-command";
+import { simpleCommand } from './simple-command';
 
 export const commands = [
-    simpleCommand
-]
+  simpleCommand,
+];

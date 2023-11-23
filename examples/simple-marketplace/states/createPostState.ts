@@ -6,7 +6,7 @@ import { MarketplacePostContext, generatePostEmbed } from '..';
 
 export const createPostState: PromptState<MarketplacePostContext> = {
   name: 'createPost',
-  timeout: 300_000,
+  timeout: 300,
   message: () => ({
     embeds: (ctx) => [generatePostEmbed(ctx.selectedPost!, ctx.interaction!.user)],
     ephemeral: true,
