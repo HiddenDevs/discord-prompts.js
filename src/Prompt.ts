@@ -1,5 +1,3 @@
-/* eslint-disable no-await-in-loop */
-/* eslint-disable no-restricted-syntax */
 import {
   ActionRowBuilder, ButtonBuilder, ButtonInteraction, ComponentType, ModalBuilder, RepliableInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction,
 } from 'discord.js';
@@ -150,15 +148,15 @@ export class Prompt<T extends object> {
       for (const component of row) {
         const builder = await component.component(this.context);
 
-        if ('messageComponent' in builder) {
+        if ('button' in builder) {
           const id = customId(this.currentState?.name ?? 'default');
 
-          builder.messageComponent.setCustomId(id);
+          builder.button.setCustomId(id);
           builder.modal.setCustomId(id);
 
           this.currentState?.components.push({ ...component, customId: id, modal: builder.modal });
 
-          actionRow.addComponents(builder.messageComponent);
+          actionRow.addComponents(builder.button);
         } else {
           const id = customId(this.currentState?.name ?? 'default');
 
