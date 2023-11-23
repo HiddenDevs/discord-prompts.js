@@ -237,12 +237,9 @@ export class Prompt<T extends object> {
 					actionRow.addComponents(builder.button);
 				} else {
 					const id = customId(this.currentState?.name ?? 'default');
-
 					builder.setCustomId(id);
-					builder.setCustomId(id);
-
+					
 					this.currentState?.components.push({ ...component, customId: id });
-
 					actionRow.addComponents(builder);
 				}
 			}
