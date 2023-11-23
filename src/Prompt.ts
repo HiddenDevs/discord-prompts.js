@@ -1,5 +1,20 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ComponentType, ModalBuilder, RepliableInteraction, StringSelectMenuBuilder, StringSelectMenuInteraction } from 'discord.js';
-import { PromptComponentType, PromptContext, PromptState, PromptStateComponent, PromptStateMessageCallback } from './types/prompt.types';
+import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonInteraction,
+	ComponentType,
+	ModalBuilder,
+	RepliableInteraction,
+	StringSelectMenuBuilder,
+	StringSelectMenuInteraction,
+} from 'discord.js';
+import {
+	PromptComponentType,
+	PromptContext,
+	PromptState,
+	PromptStateComponent,
+	PromptStateMessageCallback,
+} from './types/prompt.types';
 import { customId } from './util/customId';
 
 export class Prompt<T extends object> {
@@ -7,10 +22,16 @@ export class Prompt<T extends object> {
 	private context: PromptContext<T>;
 
 	/** The current state */
-	private currentState?: PromptState<T> & { components: (PromptStateComponent<T> & { customId: string; modal?: ModalBuilder; })[] };
+	private currentState?: PromptState<T> & {
+		components: (PromptStateComponent<T> & { customId: string; modal?: ModalBuilder })[];
+	};
 
 	/** Creates the prompt with a given set of states */
-	constructor(defaults: T, public initialState: string, public states: PromptState<T>[]) {
+	constructor(
+		defaults: T,
+		public initialState: string,
+		public states: PromptState<T>[],
+	) {
 		const previousStates: string[] = [];
 		this.context = { ...defaults, previousStates, goBack: this.goBack.bind(this) } as PromptContext<T>;
 	}
@@ -41,16 +62,21 @@ export class Prompt<T extends object> {
 
 		const msg = await interaction.reply({
 			components,
-			content: typeof messageData.content === 'function' ? await messageData.content?.(this.context) : messageData.content,
+			content:
+				typeof messageData.content === 'function'
+					? await messageData.content?.(this.context)
+					: messageData.content,
 			ephemeral: messageData.ephemeral,
 			embeds: Array.isArray(messageData.embeds) ? messageData.embeds : await messageData.embeds(this.context),
 			fetchReply: true,
 		});
 
-		const response = await msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
-			time: (state.timeout && state.timeout * 1000) || 120_000,
-			filter: (i) => i.user.id === interaction.user.id,
-		}).catch(() => null);
+		const response = await msg
+			.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
+				time: (state.timeout && state.timeout * 1000) || 120_000,
+				filter: (i) => i.user.id === interaction.user.id,
+			})
+			.catch(() => null);
 
 		if (!response) return;
 
@@ -73,14 +99,19 @@ export class Prompt<T extends object> {
 		if (interaction.replied || interaction.deferred) {
 			const msg = await interaction.editReply({
 				components,
-				content: typeof messageData.content === 'function' ? await messageData.content?.(this.context) : messageData.content,
+				content:
+					typeof messageData.content === 'function'
+						? await messageData.content?.(this.context)
+						: messageData.content,
 				embeds: Array.isArray(messageData.embeds) ? messageData.embeds : await messageData.embeds(this.context),
 			});
 
-			const response = await msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
-				time: (state.timeout && state.timeout * 1000) || 120_000,
-				filter: (i) => i.user.id === interaction.user.id,
-			}).catch(() => null);
+			const response = await msg
+				.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
+					time: (state.timeout && state.timeout * 1000) || 120_000,
+					filter: (i) => i.user.id === interaction.user.id,
+				})
+				.catch(() => null);
 
 			if (!response) return;
 
@@ -90,14 +121,19 @@ export class Prompt<T extends object> {
 				components,
 				fetchReply: true,
 				ephemeral: messageData.ephemeral,
-				content: typeof messageData.content === 'function' ? await messageData.content?.(this.context) : messageData.content,
+				content:
+					typeof messageData.content === 'function'
+						? await messageData.content?.(this.context)
+						: messageData.content,
 				embeds: Array.isArray(messageData.embeds) ? messageData.embeds : await messageData.embeds(this.context),
 			});
 
-			const response = await msg.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
-				time: (state.timeout && state.timeout * 1000) || 120_000,
-				filter: (i) => i.user.id === interaction.user.id,
-			}).catch(() => null);
+			const response = await msg
+				.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
+					time: (state.timeout && state.timeout * 1000) || 120_000,
+					filter: (i) => i.user.id === interaction.user.id,
+				})
+				.catch(() => null);
 
 			if (!response) return;
 
@@ -111,16 +147,25 @@ export class Prompt<T extends object> {
 		const component = this.currentState?.components.find((c) => c.customId === interaction.customId);
 		if (!component) throw new Error(`Couldn't find customId ${interaction.customId}`);
 
-		if (component.type === PromptComponentType.ModalButton || component.type === PromptComponentType.ModalSelectMenu) {
+		if (
+			component.type === PromptComponentType.ModalButton ||
+			component.type === PromptComponentType.ModalSelectMenu
+		) {
 			const modal = component.modal!;
 
 			if (component.type === PromptComponentType.ModalSelectMenu) {
-				const shouldShowModal = typeof component.showModal === 'boolean' ? component.showModal ?? true : await component.showModal?.(this.context as any);
+				const shouldShowModal =
+					typeof component.showModal === 'boolean'
+						? component.showModal ?? true
+						: await component.showModal?.(this.context as any);
 
 				if (!shouldShowModal) {
 					await interaction.deferUpdate();
 
-					const newState = typeof component?.callback === 'string' ? component.callback : await component?.callback(this.context as any, null);
+					const newState =
+						typeof component?.callback === 'string'
+							? component.callback
+							: await component?.callback(this.context as any, null);
 					if (!newState) return interaction.deleteReply();
 
 					return this.changeState(newState, interaction);
@@ -129,23 +174,31 @@ export class Prompt<T extends object> {
 
 			await interaction.showModal(modal);
 
-			const response = await interaction.awaitModalSubmit({
-				time: 300000,
-				filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id!,
-			}).catch(() => null);
+			const response = await interaction
+				.awaitModalSubmit({
+					time: 300000,
+					filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id!,
+				})
+				.catch(() => null);
 
 			if (!response) return;
 
 			await response.deferUpdate();
 
-			const newState = typeof component?.callback === 'string' ? component.callback : await component?.callback(this.context as any, response);
+			const newState =
+				typeof component?.callback === 'string'
+					? component.callback
+					: await component?.callback(this.context as any, response);
 			if (!newState) return interaction.deleteReply();
 
 			await this.changeState(newState, interaction);
 		} else {
 			await interaction.deferUpdate();
 
-			const newState = typeof component?.callback === 'string' ? component.callback : await component?.callback(this.context as any);
+			const newState =
+				typeof component?.callback === 'string'
+					? component.callback
+					: await component?.callback(this.context as any);
 			if (!newState) return interaction.deleteReply();
 
 			await this.changeState(newState, interaction);
