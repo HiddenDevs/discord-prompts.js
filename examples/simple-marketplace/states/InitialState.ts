@@ -1,5 +1,5 @@
 import { ButtonBuilder, ButtonStyle } from 'discord.js';
-import { PromptComponentType, PromptState } from '../../src';
+import { PromptComponentType, PromptState } from '../../../src';
 import { MarketplacePostContext, posts } from '..';
 import { preCreatePostState } from '.';
 

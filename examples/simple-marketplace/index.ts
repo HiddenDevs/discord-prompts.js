@@ -2,7 +2,8 @@ import {
   EmbedBuilder, User, Collection, Client, IntentsBitField,
 } from 'discord.js';
 import { createPostState, initialState, preCreatePostState } from './states';
-import { Prompt } from '../src';
+
+import { Prompt } from '../../src';
 
 export interface Post {
     id?: string;

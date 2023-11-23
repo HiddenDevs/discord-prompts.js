@@ -1,5 +1,5 @@
 import { StringSelectMenuBuilder } from 'discord.js';
-import { PromptComponentType, PromptState } from '../../src';
+import { PromptComponentType, PromptState } from '../../../src';
 import { MarketplacePostContext } from '..';
 import { createPostState } from '.';
 

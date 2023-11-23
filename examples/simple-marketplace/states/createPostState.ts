@@ -1,7 +1,7 @@
 import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, StringSelectMenuBuilder, TextInputBuilder, TextInputStyle,
 } from 'discord.js';
-import { PromptComponentType, PromptState } from '../../src';
+import { PromptComponentType, PromptState } from '../../../src';
 import { MarketplacePostContext, generatePostEmbed } from '..';
 
 export const createPostState: PromptState<MarketplacePostContext> = {
