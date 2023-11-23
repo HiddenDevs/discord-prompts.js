@@ -34,3 +34,6 @@ yarn-error.log*
 .turbo
 dist/
 .yarn/
+
+# lib
+lib

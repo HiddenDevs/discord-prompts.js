@@ -1,12 +1,12 @@
 import {
   ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, StringSelectMenuBuilder, TextInputBuilder, TextInputStyle,
 } from 'discord.js';
-import { PromptComponentType, PromptState } from '../../src';
+import { PromptComponentType, PromptState } from '../../../src';
 import { MarketplacePostContext, generatePostEmbed } from '..';
 
 export const createPostState: PromptState<MarketplacePostContext> = {
   name: 'createPost',
-  timeout: 300_000,
+  timeout: 300,
   message: () => ({
     embeds: (ctx) => [generatePostEmbed(ctx.selectedPost!, ctx.interaction!.user)],
     ephemeral: true,
@@ -48,10 +48,10 @@ export const createPostState: PromptState<MarketplacePostContext> = {
           callback: (ctx, interaction) => {
             const [title, description] = [interaction.fields.getTextInputValue('title'), interaction.fields.getTextInputValue('body')];
 
-                            ctx.selectedPost!.title = title;
-                            ctx.selectedPost!.description = description;
+            ctx.selectedPost!.title = title;
+            ctx.selectedPost!.description = description;
 
-                            return createPostState.name;
+            return createPostState.name;
           },
         },
         {
@@ -121,9 +121,9 @@ export const createPostState: PromptState<MarketplacePostContext> = {
               { label: 'Upfront', value: 'Upfront', default: ctx.selectedPost?.paymentType === 'Upfront' },
             ]),
           callback: (ctx) => {
-                            ctx.selectedPost!.paymentType = ctx.interaction!.values[0] as any;
+            ctx.selectedPost!.paymentType = ctx.interaction!.values[0] as any;
 
-                            return createPostState.name;
+            return createPostState.name;
           },
         },
       ],

@@ -1,3 +1,2 @@
-export * from './customId';
 export * from './Prompt';
-export * from './types';
+export * from './types/prompt.types';

@@ -1,10 +1,10 @@
 import { ButtonBuilder, ButtonStyle } from 'discord.js';
-import { PromptComponentType, PromptState } from '../../src';
+import { PromptComponentType, PromptState } from '../../../src';
 import { MarketplacePostContext, posts } from '..';
 import { preCreatePostState } from '.';
 
 export const initialState: PromptState<MarketplacePostContext> = {
-  timeout: 300_000,
+  timeout: 300,
   name: 'initial',
   message: () => ({
     ephemeral: true,

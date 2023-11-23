@@ -1,11 +1,11 @@
 import { StringSelectMenuBuilder } from 'discord.js';
-import { PromptComponentType, PromptState } from '../../src';
+import { PromptComponentType, PromptState } from '../../../src';
 import { MarketplacePostContext } from '..';
 import { createPostState } from '.';
 
 export const preCreatePostState: PromptState<MarketplacePostContext> = {
   name: 'preCreatePost',
-  timeout: 300_000,
+  timeout: 300,
   message: () => ({
     ephemeral: true,
     embeds: [],
