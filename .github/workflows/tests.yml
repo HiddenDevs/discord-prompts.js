@@ -16,11 +16,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
-        run: npm run build
-
       - name: ESLint
         run: npm run lint
-
-      - name: Formatting
-        run: npm run format

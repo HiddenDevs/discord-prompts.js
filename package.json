@@ -11,7 +11,7 @@
     "postversion": "git push && git push --tags",
     "build": "npm run format && tsc -p tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\"",
-    "lint": "eslint -c .eslintrc.js --ext .ts src"
+    "lint": "eslint -c .eslintrc.cjs --ext .ts src"
   },
   "files": [
     "lib/**/*"
