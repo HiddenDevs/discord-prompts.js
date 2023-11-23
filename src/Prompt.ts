@@ -87,7 +87,9 @@ export class Prompt<T extends object> {
 		const state = this.states.find((c) => c.name === newState);
 		if (!state) return Promise.reject(new Error(`State ${newState} not found.`));
 
-		this.context.previousStates.push(this.currentState?.name!);
+		if (!this.currentState) throw new Error('No current state found.');
+
+		this.context.previousStates.push(this.currentState.name);
 		this.currentState = { ...state, components: [] };
 
 		const shouldChangeState = await state.onEntered?.(this.context);
@@ -157,7 +159,7 @@ export class Prompt<T extends object> {
 				const shouldShowModal =
 					typeof component.showModal === 'boolean'
 						? component.showModal ?? true
-						: await component.showModal?.(this.context as any);
+						: await component.showModal?.(this.context as PromptContext<T, StringSelectMenuInteraction>);
 
 				if (!shouldShowModal) {
 					await interaction.deferUpdate();
@@ -165,7 +167,10 @@ export class Prompt<T extends object> {
 					const newState =
 						typeof component?.callback === 'string'
 							? component.callback
-							: await component?.callback(this.context as any, null);
+							: await component?.callback(
+									this.context as PromptContext<T, StringSelectMenuInteraction>,
+									null,
+							  );
 					if (!newState) return interaction.deleteReply();
 
 					return this.changeState(newState, interaction);
@@ -188,7 +193,11 @@ export class Prompt<T extends object> {
 			const newState =
 				typeof component?.callback === 'string'
 					? component.callback
-					: await component?.callback(this.context as any, response);
+					: await component?.callback(
+							this.context as PromptContext<T, StringSelectMenuInteraction> &
+								PromptContext<T, ButtonInteraction>,
+							response,
+					  );
 			if (!newState) return interaction.deleteReply();
 
 			await this.changeState(newState, interaction);
@@ -198,7 +207,10 @@ export class Prompt<T extends object> {
 			const newState =
 				typeof component?.callback === 'string'
 					? component.callback
-					: await component?.callback(this.context as any);
+					: await component?.callback(
+							this.context as PromptContext<T, StringSelectMenuInteraction> &
+								PromptContext<T, ButtonInteraction>,
+					  );
 			if (!newState) return interaction.deleteReply();
 
 			await this.changeState(newState, interaction);
