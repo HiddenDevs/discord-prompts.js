@@ -1,5 +1,5 @@
 {
-  "name": "discord-prompts.js",
+  "name": "@hiddendevs/discord-prompts.js",
   "description": "A simple library for creating state based prompts in discord.js",
   "version": "1.0.2",
   "main": "lib/index.js",
@@ -26,5 +26,24 @@
   },
   "dependencies": {
     "discord.js": "^14.14.1"
-  }
+  },
+  "directories": {
+    "example": "examples",
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HiddenDevs/discord-prompts.js.git"
+  },
+  "keywords": [
+    "hiddendevs",
+    "prompts",
+    "discord.js"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HiddenDevs/discord-prompts.js/issues"
+  },
+  "homepage": "https://github.com/HiddenDevs/discord-prompts.js#readme"
 }
