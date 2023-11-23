@@ -1,9 +1,7 @@
 import { Client, IntentsBitField } from 'discord.js';
-import { Prompt } from '../../src';
 
 import { commands } from './commands';
-  
-  
+    
 const client = new Client({
     intents: [IntentsBitField.Flags.Guilds],
 });
