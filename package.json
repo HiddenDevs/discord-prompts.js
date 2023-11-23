@@ -14,7 +14,8 @@
     "lint": "eslint -c .eslintrc.cjs --ext .ts src"
   },
   "files": [
-    "lib/**/*"
+    "lib/**/*",
+    "README.md"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.12.0",
