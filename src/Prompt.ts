@@ -17,6 +17,16 @@ import {
 } from './types/prompt.types';
 import { customId } from './util/customId';
 
+/**
+ * A prompt that allows you to create a sequence of states that a user can go through
+ * with discord js buttons and select menus.
+ * 
+ * @example
+ * ```ts
+ * const prompt = new Prompt<ContextType>(defaults, initialState.name, [...]);
+ * await prompt.start(interaction);
+ * ```
+ */
 export class Prompt<T extends object> {
 	/** The current context of this prompt */
 	private context: PromptContext<T>;
