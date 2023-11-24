@@ -88,7 +88,7 @@ export type PromptStateComponent<T extends object> =
 /** A prompt state message callback */
 export interface PromptStateMessageCallback<T extends object> {
 	ephemeral: boolean;
-	content?: string | ((ctx: PromptContext<T>) => MaybePromise<string>);
+	content?: string | ((ctx: PromptContext<T>) => MaybePromise<string | undefined>);
 	embeds: EmbedBuilder[] | ((ctx: PromptContext<T>) => MaybePromise<EmbedBuilder[]>);
 	components: PromptStateComponent<T>[][];
 }
