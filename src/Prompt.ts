@@ -182,10 +182,9 @@ export class Prompt<T extends object> {
 
 			for (const component of row) {
 				const builder = await component.component(this.context);
+				const id = customId(this.currentState?.name ?? 'default');
 
 				if ('button' in builder) {
-					const id = customId(this.currentState?.name ?? 'default');
-
 					builder.button.setCustomId(id);
 					builder.modal.setCustomId(id);
 
@@ -193,7 +192,6 @@ export class Prompt<T extends object> {
 
 					actionRow.addComponents(builder.button);
 				} else {
-					const id = customId(this.currentState?.name ?? 'default');
 					builder.setCustomId(id);
 
 					this.currentState?.components.push({ ...component, customId: id });
