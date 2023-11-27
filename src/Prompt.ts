@@ -3,6 +3,7 @@ import {
 	ButtonBuilder,
 	ButtonInteraction,
 	ComponentType,
+	InteractionCollector,
 	ModalBuilder,
 	RepliableInteraction,
 	StringSelectMenuBuilder,
@@ -36,6 +37,9 @@ export class Prompt<T extends object> {
 	private currentState?: PromptState<T> & {
 		components: (PromptStateComponent<T> & { customId: string; modal?: ModalBuilder })[];
 	};
+
+	/** The interaction collector */
+	private collector?: InteractionCollector<ButtonInteraction | StringSelectMenuInteraction>;
 
 	/** Creates the prompt with a given set of states */
 	constructor(
@@ -90,16 +94,14 @@ export class Prompt<T extends object> {
 				? await interaction.editReply(messageOptions)
 				: await interaction.reply(messageOptions);
 
-		const response = await msg
-			.awaitMessageComponent<ComponentType.Button | ComponentType.StringSelect>({
-				time: (state.timeout && state.timeout * 1000) || 120_000,
-				filter: (i) => i.user.id === interaction.user.id,
-			})
-			.catch(() => null);
+		if (this.collector) this.collector.stop();
 
-		if (!response) return;
+		this.collector = msg.createMessageComponentCollector<ComponentType.Button | ComponentType.StringSelect>({
+			time: (state.timeout && state.timeout * 1000) || 120_000,
+			filter: (i) => i.user.id === interaction.user.id,
+		});
 
-		await this.handleCollect(response);
+		this.collector.on('collect', this.handleCollect);
 	}
 
 	private async handleCollect(interaction: ButtonInteraction | StringSelectMenuInteraction) {
@@ -117,6 +119,8 @@ export class Prompt<T extends object> {
 
 			if (!shouldShowModal) {
 				await interaction.deferUpdate();
+
+				this.collector?.stop();
 
 				const newState =
 					typeof component.callback === 'string'
@@ -147,6 +151,8 @@ export class Prompt<T extends object> {
 
 			await response.deferUpdate();
 
+			this.collector?.stop();
+
 			const newState =
 				typeof component?.callback === 'string'
 					? component.callback
@@ -162,6 +168,8 @@ export class Prompt<T extends object> {
 
 		await interaction.deferUpdate();
 
+		this.collector?.stop();
+
 		const newState =
 			typeof component?.callback === 'string'
 				? component.callback
@@ -169,6 +177,7 @@ export class Prompt<T extends object> {
 						this.context as PromptContext<T, StringSelectMenuInteraction> &
 							PromptContext<T, ButtonInteraction>,
 				  );
+
 		if (!newState) return interaction.deleteReply();
 
 		await this.changeState(newState, interaction);
