@@ -41,11 +41,14 @@ export class Prompt<T extends object> {
 	/** The interaction collector */
 	private collector?: InteractionCollector<ButtonInteraction | StringSelectMenuInteraction>;
 
+	/** The states represented in a map */
+	public states: Map<string, PromptState<T>>;
+
 	/** Creates the prompt with a given set of states */
 	constructor(
 		defaults: T,
 		public initialState: string,
-		public states: PromptState<T>[],
+		states: PromptState<T>[],
 	) {
 		const previousStates: string[] = [];
 
@@ -54,6 +57,7 @@ export class Prompt<T extends object> {
 		};
 
 		this.context = { ...defaults, previousStates, goBack };
+		this.states = new Map(states.map((s) => [s.name, s]));
 	}
 
 	/**
@@ -67,7 +71,7 @@ export class Prompt<T extends object> {
 	}
 
 	private async changeState(newState: string, interaction: RepliableInteraction) {
-		const state = this.states.find((c) => c.name === newState);
+		const state = this.states.get(newState);
 		if (!state) return Promise.reject(new PromptError(`State ${newState} not found.`));
 
 		this.context.previousStates.push(this.currentState?.name ?? this.initialState);
@@ -97,7 +101,7 @@ export class Prompt<T extends object> {
 		if (this.collector) this.collector.stop();
 
 		this.collector = msg.createMessageComponentCollector<ComponentType.Button | ComponentType.StringSelect>({
-			time: (state.timeout && state.timeout * 1000) || 120_000,
+			time: state.timeout || 120_000,
 			filter: (i) => i.user.id === interaction.user.id,
 		});
 
