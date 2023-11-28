@@ -11,7 +11,7 @@ import { PromptContext } from '../types/PromptContext';
 import { fakeErrorState } from './fake-error-state';
 
 export const initialState: PromptState<PromptContext> = {
-	timeout: 300, // timeout in seconds
+	timeout: 300_000,
 	name: 'initial',
 	message: () => ({
 		ephemeral: true,

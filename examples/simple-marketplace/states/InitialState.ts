@@ -4,7 +4,7 @@ import { MarketplacePostContext, posts } from '..';
 import { preCreatePostState } from '.';
 
 export const initialState: PromptState<MarketplacePostContext> = {
-	timeout: 300,
+	timeout: 300_000,
 	name: 'initial',
 	message: () => ({
 		ephemeral: true,
