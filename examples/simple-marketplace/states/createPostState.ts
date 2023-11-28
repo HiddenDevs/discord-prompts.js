@@ -154,7 +154,7 @@ export const createPostState: PromptState<MarketplacePostContext> = {
 							},
 						]),
 					callback: (ctx) => {
-						ctx.selectedPost!.paymentType = ctx.interaction!.values[0] as any;
+						ctx.selectedPost!.paymentType = ctx.interaction!.values[0] as 'Upon completion';
 
 						return createPostState.name;
 					},
@@ -164,7 +164,7 @@ export const createPostState: PromptState<MarketplacePostContext> = {
 				{
 					type: PromptComponentType.Button,
 					component: () => new ButtonBuilder().setLabel('Go Back').setStyle(ButtonStyle.Secondary),
-					callback: (ctx) => ctx.previousState.pop()!,
+					callback: (ctx) => ctx.goBack(),
 				},
 			],
 		],

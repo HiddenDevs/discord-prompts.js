@@ -14,9 +14,7 @@ export const initialState: PromptState<MarketplacePostContext> = {
 				{
 					type: PromptComponentType.Button,
 					component: () => new ButtonBuilder().setLabel('Create new Post').setStyle(ButtonStyle.Primary),
-					callback: (ctx) => {
-						ctx.previousState = [initialState.name];
-
+					callback: () => {
 						return preCreatePostState.name;
 					},
 				},
@@ -27,9 +25,7 @@ export const initialState: PromptState<MarketplacePostContext> = {
 							.setLabel('Edit Post(s)')
 							.setStyle(ButtonStyle.Secondary)
 							.setDisabled(posts.size === 0),
-					callback: (ctx) => {
-						ctx.previousState = [initialState.name];
-
+					callback: () => {
 						// TODO: change
 						return preCreatePostState.name;
 					},

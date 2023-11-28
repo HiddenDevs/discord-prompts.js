@@ -23,9 +23,7 @@ export const preCreatePostState: PromptState<MarketplacePostContext> = {
 							},
 						]),
 					callback: (ctx) => {
-						ctx.previousState.push(preCreatePostState.name);
-
-						ctx.selectedPost!.postType = ctx.interaction!.values[0] as any;
+						ctx.selectedPost!.postType = ctx.interaction!.values[0] as 'Hiring' | 'Hireable';
 
 						return createPostState.name;
 					},

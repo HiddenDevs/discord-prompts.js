@@ -20,8 +20,8 @@ export interface Post {
 }
 
 export interface MarketplacePostContext {
+	previousStates: string[];
 	selectedPost?: Post;
-	previousState: string[];
 }
 
 export const posts = new Collection<string, Post>();
@@ -79,7 +79,7 @@ client.on('interactionCreate', async (interaction) => {
 	if (interaction.isChatInputCommand()) {
 		if (interaction.commandName === 'test') {
 			const defaults: MarketplacePostContext = {
-				previousState: [initialState.name],
+				previousStates: [initialState.name],
 				selectedPost: {
 					pastWorks: [],
 					paymentTypes: {},
