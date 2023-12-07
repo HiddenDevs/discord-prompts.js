@@ -9,6 +9,16 @@ Using npm:
 npm install --save @hidden-devs/discord-prompts.js
 ```
 
+Using yarn:
+```
+yarn add @hidden-devs/discord-prompts.js
+```
+
+Using pnpm:
+```
+pnpm add @hidden-devs/discord-prompts.js
+```
+
 ## Usage
 
 Usage examples can be found [here](./examples)
