@@ -105,7 +105,7 @@ export class Prompt<T extends object> {
 			filter: (i) => i.user.id === interaction.user.id,
 		});
 
-		this.collector.on('collect', this.handleCollect);
+		this.collector.on('collect', this.handleCollect.bind(this));
 	}
 
 	private async handleCollect(interaction: ButtonInteraction | StringSelectMenuInteraction) {
