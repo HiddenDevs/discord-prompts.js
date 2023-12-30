@@ -61,7 +61,7 @@ export interface PromptStateButtonComponent<T extends object> extends PromptStat
 
 /** A prompt state that contains a select menu */
 export interface PromptStateSelectMenuComponent<T extends object>
-	extends PromptStateComponentBase<T, StringSelectMenuBuilder> {
+	extends PromptStateComponentBase<T, StringSelectMenuInteraction> {
 	type: PromptComponentType.SelectMenu;
 	component: StringSelectMenuBuilder | ((ctx: PromptContext<T>) => MaybePromise<StringSelectMenuBuilder>);
 }
