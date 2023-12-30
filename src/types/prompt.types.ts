@@ -1,5 +1,4 @@
 import {
-	AnySelectMenuInteraction,
 	ButtonBuilder,
 	ButtonInteraction,
 	EmbedBuilder,
@@ -62,7 +61,7 @@ export interface PromptStateButtonComponent<T extends object> extends PromptStat
 
 /** A prompt state that contains a select menu */
 export interface PromptStateSelectMenuComponent<T extends object>
-	extends PromptStateComponentBase<T, AnySelectMenuInteraction> {
+	extends PromptStateComponentBase<T, StringSelectMenuBuilder> {
 	type: PromptComponentType.SelectMenu;
 	component: StringSelectMenuBuilder | ((ctx: PromptContext<T>) => MaybePromise<StringSelectMenuBuilder>);
 }
