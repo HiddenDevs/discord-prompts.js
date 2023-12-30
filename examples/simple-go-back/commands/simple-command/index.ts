@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { PromptContext } from './types/PromptContext';
 import { Prompt } from '../../../../src';
-import { initialState } from './states/initial-state';
 import { fakeErrorState } from './states/fake-error-state';
+import { initialState } from './states/initial-state';
+import { PromptContext } from './types/PromptContext';
 
 export const simpleCommand = {
 	name: 'simple',
