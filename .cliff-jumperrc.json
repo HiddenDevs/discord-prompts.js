@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/@favware/cliff-jumper/assets/cliff-jumper.schema.json",
+  "name": "discord-prompts.js",
+  "org": "hidden-devs",
+  "monoRepo": false,
+  "packagePath": ".",
+  "commitMessageTemplate": "chore(release): release {{new-version}}",
+  "tagTemplate": "v{{new-version}}"
+}
