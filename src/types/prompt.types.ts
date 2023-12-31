@@ -31,11 +31,16 @@ export type PromptContext<Context extends object, T = RepliableInteraction> = Co
 
 // * Prompt Component Types * //
 
-interface PromptStateComponentBase<Context extends object, Interaction = RepliableInteraction> {
+interface ModalComponentReturnType<T, Interaction> {
+	button: T;
+	modal: ModalBuilder | ((interaction: Interaction) => MaybePromise<ModalBuilder | null>);
+}
+
+export interface PromptStateComponentBase<Context extends object, Interaction = RepliableInteraction> {
 	callback: string | ((ctx: PromptContext<Context, Interaction>) => MaybePromise<string | undefined>);
 }
 
-interface PromptStateComponentBaseWithInteraction<
+export interface PromptStateComponentBaseWithInteraction<
 	Context extends object,
 	Interaction = RepliableInteraction,
 	AlternateInteraction = Interaction,
@@ -51,29 +56,34 @@ interface PromptStateComponentBaseWithInteraction<
 /** A prompt state that uses a button component */
 export interface PromptStateButtonComponent<T extends object> extends PromptStateComponentBase<T, ButtonInteraction> {
 	type: PromptComponentType.Button;
-	component: (ctx: PromptContext<T>) => MaybePromise<ButtonBuilder>;
+	component: ButtonBuilder | ((ctx: PromptContext<T>) => MaybePromise<ButtonBuilder>);
 }
 
 /** A prompt state that contains a select menu */
 export interface PromptStateSelectMenuComponent<T extends object>
 	extends PromptStateComponentBase<T, StringSelectMenuInteraction> {
 	type: PromptComponentType.SelectMenu;
-	component: (ctx: PromptContext<T>) => MaybePromise<StringSelectMenuBuilder>;
+	component: StringSelectMenuBuilder | ((ctx: PromptContext<T>) => MaybePromise<StringSelectMenuBuilder>);
 }
 
 /** A prompt state that uses a modal that is opened by a button */
 export interface PromptStateModalButtonComponent<T extends object>
 	extends PromptStateComponentBaseWithInteraction<T, ButtonInteraction, ModalSubmitInteraction> {
 	type: PromptComponentType.ModalButton;
-	component: (ctx: PromptContext<T>) => MaybePromise<{ button: ButtonBuilder; modal: ModalBuilder }>;
+	component:
+		| ModalComponentReturnType<ButtonBuilder, ButtonInteraction>
+		| ((ctx: PromptContext<T>) => MaybePromise<ModalComponentReturnType<ButtonBuilder, ButtonInteraction>>);
 }
 
 /** A prompt state that is a modal opened by a select menu component */
 export interface PromptStateModalSelectMenuComponent<T extends object>
 	extends PromptStateComponentBaseWithInteraction<T, StringSelectMenuInteraction, ModalSubmitInteraction | null> {
 	type: PromptComponentType.ModalSelectMenu;
-	showModal?: boolean | ((ctx: PromptContext<T, StringSelectMenuInteraction>) => MaybePromise<boolean>);
-	component: (ctx: PromptContext<T>) => MaybePromise<{ button: StringSelectMenuBuilder; modal: ModalBuilder }>;
+	component:
+		| ModalComponentReturnType<StringSelectMenuBuilder, StringSelectMenuInteraction>
+		| ((
+				ctx: PromptContext<T>,
+		  ) => MaybePromise<ModalComponentReturnType<StringSelectMenuBuilder, StringSelectMenuInteraction>>);
 }
 
 /** A type representing a prompt state component, used when defining the components added for a prompt state */
@@ -90,7 +100,7 @@ export interface PromptStateMessageCallback<T extends object> {
 	ephemeral: boolean;
 	content?: string | ((ctx: PromptContext<T>) => MaybePromise<string | undefined>);
 	embeds: EmbedBuilder[] | ((ctx: PromptContext<T>) => MaybePromise<EmbedBuilder[]>);
-	components: PromptStateComponent<T>[][];
+	components: PromptStateComponent<T>[][] | ((ctx: PromptContext<T>) => MaybePromise<PromptStateComponent<T>[][]>);
 }
 
 /**
@@ -101,5 +111,5 @@ export interface PromptState<T extends object> {
 	name: string;
 	timeout?: number;
 	onEntered?: (ctx: PromptContext<T>) => MaybePromise<string | undefined>;
-	message: (ctx: PromptContext<T>) => MaybePromise<PromptStateMessageCallback<T>>;
+	message: PromptStateMessageCallback<T> | ((ctx: PromptContext<T>) => MaybePromise<PromptStateMessageCallback<T>>);
 }

@@ -4,8 +4,10 @@ import {
 	ButtonInteraction,
 	ComponentType,
 	InteractionCollector,
-	ModalBuilder,
+	InteractionReplyOptions,
+	ModalSubmitInteraction,
 	RepliableInteraction,
+	SnowflakeUtil,
 	StringSelectMenuBuilder,
 	StringSelectMenuInteraction,
 } from 'discord.js';
@@ -16,7 +18,6 @@ import {
 	PromptStateComponent,
 	PromptStateMessageCallback,
 } from './types/prompt.types';
-import { customId } from './util/customId';
 import { PromptError } from './util/errors';
 
 /**
@@ -34,9 +35,10 @@ export class Prompt<T extends object> {
 	private context: PromptContext<T>;
 
 	/** The current state */
-	private currentState?: PromptState<T> & {
-		components: (PromptStateComponent<T> & { customId: string; modal?: ModalBuilder })[];
-	};
+	private currentState?: PromptState<T>;
+
+	/** All components for this prompt */
+	private components: (PromptStateComponent<T> & { id: string })[] = [];
 
 	/** The interaction collector */
 	private collector?: InteractionCollector<ButtonInteraction | StringSelectMenuInteraction>;
@@ -63,35 +65,25 @@ export class Prompt<T extends object> {
 	/**
 	 * Starts the prompt with a given interaction
 	 * @param interaction The interaction starting off the sequence
+	 * @returns {boolean} If true, the prompt started successfully
 	 */
-	public async start(interaction: RepliableInteraction): Promise<void> {
+	public async start(interaction: RepliableInteraction): Promise<boolean> {
 		this.context.interaction = interaction;
 
-		await this.changeState(this.initialState, interaction);
+		return this.changeState(this.initialState, interaction);
 	}
 
-	private async changeState(newState: string, interaction: RepliableInteraction) {
+	private async changeState(newState: string, interaction: RepliableInteraction): Promise<boolean> {
 		const state = this.states.get(newState);
 		if (!state) return Promise.reject(new PromptError(`State ${newState} not found.`));
 
 		this.context.previousStates.push(this.currentState?.name ?? this.initialState);
-		this.currentState = { ...state, components: [] };
+		this.currentState = state;
 
 		const shouldChangeState = await state.onEntered?.(this.context);
-		if (shouldChangeState) this.changeState(shouldChangeState, interaction);
+		if (shouldChangeState) return this.changeState(shouldChangeState, interaction);
 
-		const messageData = await state.message(this.context);
-		const components = await this.formatComponents(messageData);
-		const messageOptions = {
-			components,
-			fetchReply: true,
-			ephemeral: messageData.ephemeral,
-			content:
-				typeof messageData.content === 'function'
-					? await messageData.content?.(this.context)
-					: messageData.content,
-			embeds: Array.isArray(messageData.embeds) ? messageData.embeds : await messageData.embeds(this.context),
-		};
+		const messageOptions = await this.prepareMessageOptions(state);
 
 		const msg =
 			interaction.replied || interaction.deferred
@@ -105,49 +97,49 @@ export class Prompt<T extends object> {
 			filter: (i) => i.user.id === interaction.user.id,
 		});
 
-		this.collector.on('collect', this.handleCollect);
+		this.collector.on('collect', this.handleCollect.bind(this));
+
+		return true;
 	}
 
-	private async handleCollect(interaction: ButtonInteraction | StringSelectMenuInteraction) {
+	private async handleCollect(interaction: ButtonInteraction | StringSelectMenuInteraction): Promise<void> {
 		this.context.interaction = interaction;
 
-		const component = this.currentState?.components.find((c) => c.customId === interaction.customId);
+		const component = this.components.find((c) => c.id === interaction.customId);
 		if (!component) throw new PromptError(`Couldn't find component with customId: ${interaction.customId}`);
-
-		if (component.type === PromptComponentType.ModalSelectMenu) {
-			const shouldShowModal =
-				typeof component.showModal === 'boolean'
-					? component.showModal
-					: (await component.showModal?.(this.context as PromptContext<T, StringSelectMenuInteraction>)) ??
-					  true;
-
-			if (!shouldShowModal) {
-				await interaction.deferUpdate();
-
-				this.collector?.stop();
-
-				const newState =
-					typeof component.callback === 'string'
-						? component.callback
-						: await component.callback(this.context as PromptContext<T, StringSelectMenuInteraction>, null);
-				if (!newState) return interaction.deleteReply();
-
-				return this.changeState(newState, interaction);
-			}
-		}
 
 		if (
 			component.type === PromptComponentType.ModalButton ||
 			component.type === PromptComponentType.ModalSelectMenu
 		) {
-			const modal = component.modal!;
+			const childComponents =
+				typeof component.component === 'function'
+					? await component.component(this.context)
+					: component.component;
+			const modal =
+				typeof childComponents.modal === 'function'
+					? await childComponents.modal(interaction as never) // temporary
+					: childComponents.modal;
+
+			if (!modal) {
+				await interaction.deferUpdate();
+
+				this.collector?.stop();
+
+				const newState = await this.getNewStateFromCallback(component);
+				if (!newState) return interaction.deleteReply();
+
+				return void this.changeState(newState, interaction);
+			}
+
+			modal.setCustomId(component.id);
 
 			await interaction.showModal(modal);
 
 			const response = await interaction
 				.awaitModalSubmit({
 					time: 300000,
-					filter: (i) => i.user.id === interaction.user.id && i.customId === component.customId,
+					filter: (i) => i.user.id === interaction.user.id && i.customId === component.id,
 				})
 				.catch(() => null);
 
@@ -157,57 +149,88 @@ export class Prompt<T extends object> {
 
 			this.collector?.stop();
 
-			const newState =
-				typeof component?.callback === 'string'
-					? component.callback
-					: await component?.callback(
-							this.context as PromptContext<T, StringSelectMenuInteraction> &
-								PromptContext<T, ButtonInteraction>,
-							response,
-					  );
+			const newState = await this.getNewStateFromCallback(component, response);
 			if (!newState) return interaction.deleteReply();
 
-			return this.changeState(newState, interaction);
+			return void this.changeState(newState, interaction);
 		}
 
 		await interaction.deferUpdate();
 
 		this.collector?.stop();
 
-		const newState =
-			typeof component?.callback === 'string'
-				? component.callback
-				: await component?.callback(
-						this.context as PromptContext<T, StringSelectMenuInteraction> &
-							PromptContext<T, ButtonInteraction>,
-				  );
-
+		const newState = await this.getNewStateFromCallback(component);
 		if (!newState) return interaction.deleteReply();
 
-		await this.changeState(newState, interaction);
+		return void this.changeState(newState, interaction);
 	}
 
-	private async formatComponents(data: PromptStateMessageCallback<T>) {
-		const rows = [];
+	private async prepareMessageOptions(state: PromptState<T>): Promise<InteractionReplyOptions> {
+		const messageData = typeof state.message === 'object' ? state.message : await state.message(this.context);
+		const components = await this.formatComponents(messageData);
+		const messageOptions = {
+			components,
+			fetchReply: true,
+			ephemeral: messageData.ephemeral,
+			content:
+				typeof messageData.content === 'function'
+					? await messageData.content?.(this.context)
+					: messageData.content,
+			embeds: Array.isArray(messageData.embeds) ? messageData.embeds : await messageData.embeds(this.context),
+		};
 
-		for (const row of data.components) {
+		return messageOptions;
+	}
+
+	private async getNewStateFromCallback(
+		component: PromptStateComponent<T>,
+		modalInteraction?: ModalSubmitInteraction,
+	): Promise<string | undefined> {
+		if (typeof component.callback === 'string') return component.callback;
+
+		if (
+			component.type === PromptComponentType.ModalButton ||
+			component.type == PromptComponentType.ModalSelectMenu
+		) {
+			if (!modalInteraction) throw new PromptError('No modal submit interaction found when required.');
+
+			return component.callback(
+				this.context as PromptContext<T, StringSelectMenuInteraction> & PromptContext<T, ButtonInteraction>,
+				modalInteraction,
+			);
+		} else {
+			return component.callback(
+				this.context as PromptContext<T, StringSelectMenuInteraction> & PromptContext<T, ButtonInteraction>,
+			);
+		}
+	}
+
+	private async formatComponents(
+		data: PromptStateMessageCallback<T>,
+	): Promise<ActionRowBuilder<StringSelectMenuBuilder | ButtonBuilder>[]> {
+		const rows = [];
+		const components = Array.isArray(data.components) ? data.components : await data.components(this.context);
+
+		for (const row of components) {
 			const actionRow = new ActionRowBuilder<ButtonBuilder | StringSelectMenuBuilder>();
 
 			for (const component of row) {
-				const builder = await component.component(this.context);
-				const id = customId(this.currentState?.name ?? 'default');
+				const builder =
+					typeof component.component === 'function'
+						? await component.component(this.context)
+						: component.component;
+				const id = SnowflakeUtil.generate().toString();
 
 				if ('button' in builder) {
 					builder.button.setCustomId(id);
-					builder.modal.setCustomId(id);
 
-					this.currentState?.components.push({ ...component, customId: id, modal: builder.modal });
+					this.components.push({ ...component, id });
 
 					actionRow.addComponents(builder.button);
 				} else {
 					builder.setCustomId(id);
 
-					this.currentState?.components.push({ ...component, customId: id });
+					this.components.push({ ...component, id });
 					actionRow.addComponents(builder);
 				}
 			}
